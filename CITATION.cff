@@ -8,16 +8,23 @@ abstract: >-
   the measurement half of the data to the PSI-MS controlled vocabulary and the
   archaeological half to published archaeological ontologies, and provides
   reference builders and a conformance validator.
+# Sole author at present. ZoomzPeak is a PAASTA (Palaeoproteomics And
+# Archaeology, Society for Techniques and Advances) initiative, and authorship
+# is expected to broaden as the community contributes -- see CONTRIBUTING.md.
+# Vocabulary bindings and archaeological context involve real scholarly
+# judgement and are credited as authorship, not data entry.
 authors:
   - family-names: Collins
     given-names: Matthew
     email: matthew@palaeome.org
-    affiliation: Palaeoprot
+    affiliation: "Palaeoprot / PAASTA"
+
 repository-code: "https://github.com/Palaeoprot/ZoomzPeak"
 url: "https://github.com/Palaeoprot/ZoomzPeak"
 license: Apache-2.0
 license-url: "https://github.com/Palaeoprot/ZoomzPeak/blob/main/LICENSE"
 keywords:
+  - PAASTA
   - ZooMS
   - palaeoproteomics
   - mass spectrometry

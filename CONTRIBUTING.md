@@ -3,6 +3,13 @@
 Thank you for considering it. This project is being built in the open precisely
 because a data standard written by one lab is not a standard.
 
+ZoomzPeak is a [**PAASTA**](https://paasta-community.github.io/) initiative --
+Palaeoproteomics And Archaeology, Society for Techniques and Advances -- so it
+inherits PAASTA's premise: an open, supportive place to ask questions and share
+experience. Newcomers and early-career researchers are explicitly welcome, and
+"I don't understand why it works this way" is a useful contribution, not a
+nuisance.
+
 Please read the [Code of Conduct](CODE_OF_CONDUCT.md) first, and
 [`PLAN.md`](PLAN.md) for where the project is heading.
 
