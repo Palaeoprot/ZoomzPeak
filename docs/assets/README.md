@@ -1,25 +1,31 @@
 # Visual assets
 
-## Current state — no mark is committed
+## Current state
 
-**There is currently no logo in this repository.** The four-option exploration
-sheet that previously lived here as `mark.png` has been removed pending a
-finished asset and a settled provenance record (below).
+`mark1.png` -- **option 2, "Collagen Fragment"**: spectrum peaks rising into an
+abstract bone/tooth fragment, with the ZoomzPeak wordmark beneath. Chosen
+2026-09-08. This is the project mark, used in the README.
 
-Option 2, "Collagen Fragment" -- spectrum peaks merging into an abstract
-bone/tooth fragment -- was chosen on 2026-09-08. What is needed before anything
-is committed here again:
+    517 x 370, RGBA with a transparent background, flat colour, 81 KB
 
-- [ ] `logo.svg` -- the chosen mark alone, as vector, flat colour (no gradient)
-- [ ] `logo-mono.svg` -- single-colour black and white variants
-- [ ] `logo-dark.svg` -- lightened for dark backgrounds (GitHub dark mode)
-- [ ] `favicon.ico` -- 16/32/48 px
-- [ ] `wordmark.svg` -- mark plus "ZoomzPeak" lockup
+It supersedes the four-option exploration comp sheet that briefly lived here as
+`mark.png`, which was removed on 2026-09-08.
+
+### What is still wanted
+
+The mark is usable as it stands. These would make it complete:
+
+- [ ] `logo.svg` -- vector source. A raster lockup cannot be scaled for print,
+      and 517 px is thin for a paper figure.
+- [ ] `logo-mono.svg` -- single-colour black and white, for print and embossing
+- [ ] `logo-dark.svg` -- **the most useful next one.** The transparent
+      background is right, but the mark itself is a saturated dark blue, which
+      is low-contrast against GitHub's near-black dark theme. A lightened
+      variant would fix that.
+- [ ] `favicon.ico` -- 16/32/48 px, mark only, no wordmark
+- [ ] `mark-only.svg` -- the bone/peaks glyph without the wordmark, for places
+      too small for the lockup
 - [ ] Provenance recorded below
-
-A raster comp sheet was never a usable logo asset: it is four candidates with
-captions, at 1.2 MB, in a repository whose own rule is that nothing ships
-half-finished and undocumented.
 
 ## Notes for whoever draws the final version
 

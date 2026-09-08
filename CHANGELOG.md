@@ -18,9 +18,9 @@ depended on.
   sequence.
 - Repository scaffold: README, Apache-2.0 code licence, CC-BY-4.0 specification
   licence, Code of Conduct, contributing guide, citation metadata.
-- Logo direction chosen: option 2, "Collagen Fragment". No mark is committed
-  yet -- the exploration sheet was removed pending a vector asset and a
-  provenance record. See `docs/assets/README.md`.
+- Project mark: option 2, "Collagen Fragment" (`docs/assets/mark1.png`),
+  shown in the README. Vector, monochrome and dark-mode variants still wanted
+  -- see `docs/assets/README.md`.
 
 ### Decided
 - ZoomzPeak is a **PAASTA** initiative (Palaeoproteomics And Archaeology, Society
