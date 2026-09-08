@@ -1,0 +1,56 @@
+ZoomzPeak
+Copyright (c) 2026 Matthew Collins and the ZoomzPeak contributors
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+--------------------------------------------------------------------------------
+
+Scope of this licence
+
+The Apache-2.0 licence above covers the SOURCE CODE in this repository
+(src/, cli/, tests/).
+
+Two parts of the repository are licensed differently:
+
+  * The specification and vocabulary bindings (spec/, vocab/, docs/) are
+    licensed CC-BY-4.0, so that they can be reused and cited freely.
+    See LICENSE-SPEC.
+
+  * The ZoomzPeak name and logo are not covered by either licence.
+    All rights reserved. See LICENSE-SPEC for what that does and does not
+    permit.
+
+--------------------------------------------------------------------------------
+
+Third-party standards and vocabularies
+
+This project maps to, and builds on, external standards that carry their own
+licences and must be credited on their own terms. Mapping to a vocabulary does
+not relicense it.
+
+  mzPeak specification            HUPO Proteomics Standards Initiative
+  PSI-MS controlled vocabulary    HUPO Proteomics Standards Initiative
+  SDRF-Proteomics                 HUPO-PSI / bigbio
+  LADO                            Leibniz-Zentrum fuer Archaeologie (LEIZA),
+                                  Thiery & Mees, CC-BY-4.0,
+                                  doi:10.5281/zenodo.15477358
+  CIDOC-CRM                       ICOM/CIDOC
+
+ZoomzPeak is an independent community project. It is not endorsed by, and does
+not speak for, HUPO-PSI, LEIZA, or any other organisation named above.
+
+--------------------------------------------------------------------------------
+
+ZoomzPeak is an initiative of PAASTA -- Palaeoproteomics And Archaeology,
+Society for Techniques and Advances.
+
+    https://paasta-community.github.io/
