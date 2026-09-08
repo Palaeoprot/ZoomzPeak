@@ -42,7 +42,7 @@ be done from here — see the note there.
 
 | Location | Size | Role |
 |---|---|---|
-| `MS1-Data/scripts/10_Export_MZPeak_Parquet.py` | 155 ln | Bespoke exporter, one dataset (Collins 2026 Rabin); joins peaklist CSV × plate metadata × run YAML |
+| `MS1-Data/scripts/10_Export_MZPeak_Parquet.py` | 155 ln | Bespoke exporter, one dataset ("Dataset A", anonymised -- unpublished); joins peaklist CSV × plate metadata × run YAML |
 | `MS1-Data/scripts/11_Export_MZPeak_Parquet_All.py` | 300 ln | Generalized exporter, 4 source strategies (`consolidated_csv` → `txt_profile` → `mzxml_profile` → `mzml_profile`); defines the canonical 13-column `SCHEMA` |
 | `MS1-Data/scripts/13_Pick_Peaks_ZooMS.py` | 132 ln | Peak-picks `is_centroided=False` rows via `pyZooMS.peakPickerSciPy`; writes to `…/picked/` |
 | `MS2-Data/spectrum_extraction/universal_parquet_ingest.py` | — | Dual-output MS2 table + MS1 envelope in one pass, consistent `spec_idx` |
