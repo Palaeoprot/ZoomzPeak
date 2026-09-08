@@ -1,21 +1,25 @@
 # Visual assets
 
-## Current state
+## Current state — no mark is committed
 
-`mark.png` (1536×1024) is the **original four-option exploration sheet**, kept as a
-record of the design process. Option 2, "Collagen Fragment" — spectrum peaks
-merging into an abstract bone/tooth fragment — was chosen on 2026-09-08.
+**There is currently no logo in this repository.** The four-option exploration
+sheet that previously lived here as `mark.png` has been removed pending a
+finished asset and a settled provenance record (below).
 
-**This is not yet a usable logo asset.** It is a raster comp sheet showing four
-candidates with captions. Still needed:
+Option 2, "Collagen Fragment" -- spectrum peaks merging into an abstract
+bone/tooth fragment -- was chosen on 2026-09-08. What is needed before anything
+is committed here again:
 
-- [ ] `logo.svg` — the chosen mark alone, as vector, flat colour (no gradient)
-- [ ] `logo-mono.svg` — single-colour black and white variants
-- [ ] `logo-dark.svg` — lightened for dark backgrounds (GitHub dark mode)
-- [ ] `favicon.ico` — 16/32/48 px
-- [ ] `wordmark.svg` — mark plus "ZoomzPeak" lockup
+- [ ] `logo.svg` -- the chosen mark alone, as vector, flat colour (no gradient)
+- [ ] `logo-mono.svg` -- single-colour black and white variants
+- [ ] `logo-dark.svg` -- lightened for dark backgrounds (GitHub dark mode)
+- [ ] `favicon.ico` -- 16/32/48 px
+- [ ] `wordmark.svg` -- mark plus "ZoomzPeak" lockup
+- [ ] Provenance recorded below
 
-Until those exist, the README points at `mark.png`, which is a placeholder.
+A raster comp sheet was never a usable logo asset: it is four candidates with
+captions, at 1.2 MB, in a repository whose own rule is that nothing ships
+half-finished and undocumented.
 
 ## Notes for whoever draws the final version
 
