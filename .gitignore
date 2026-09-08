@@ -6,6 +6,9 @@
 
 # Mass-spectrometry data — never commit
 *.parquet
+# ...except the synthetic fixtures, which are generated, not measured.
+# See tests/fixtures/README.md. Nothing real is ever whitelisted here.
+!tests/fixtures/*.parquet
 *.raw
 *.RAW
 *.mzML

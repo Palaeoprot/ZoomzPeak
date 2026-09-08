@@ -121,6 +121,17 @@ note `consolidated_csv` is declared by the exporter but never used;
 `source_type` ∈ {`external`, `internal`};
 `is_centroided` is `True` only for Rabin's 172 rows.
 
+## Finding 3a — `shelfmark` values are mojibake
+
+The Rabin / Crafting Documents dataset stores archival shelfmarks as `Pi�ce`
+where `Pièce` is meant — a UTF-8/Latin-1 round-trip fault upstream in the CSV
+read, affecting 155 distinct values.
+
+Minor next to the other findings, but worth fixing **before** that column is ever
+populated in a published table: a corrupted shelfmark is a corrupted citation to a
+physical object, and mojibake tends to become permanent once it is downstream of a
+join. The fix belongs in the reader, not in the stored values.
+
 ## Finding 3 — no file-level metadata anywhere
 
 Every file's Parquet key-value metadata contains **only the pandas schema block**.
