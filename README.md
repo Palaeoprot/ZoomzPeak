@@ -1,4 +1,7 @@
-<img src="docs/assets/mark1.png" alt="ZoomzPeak" width="260">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/mark1-dark.png">
+  <img src="docs/assets/mark1.png" alt="ZoomzPeak" width="260">
+</picture>
 
 # ZoomzPeak
 

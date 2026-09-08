@@ -8,6 +8,34 @@ abstract bone/tooth fragment, with the ZoomzPeak wordmark beneath. Chosen
 
     517 x 370, RGBA with a transparent background, flat colour, 81 KB
 
+`mark1-dark.png` -- the same mark for dark backgrounds, in a lightened blue.
+The README serves them through a `<picture>` element, so GitHub swaps them on
+`prefers-color-scheme` automatically.
+
+### Why the dark variant exists, and how it was made
+
+Measured, not guessed:
+
+| | contrast |
+|---|---|
+| `#002EF9` on GitHub light `#FFFFFF` | **7.61:1** |
+| `#002EF9` on GitHub dark `#0D1117` | **2.49:1** -- below the 3:1 WCAG AA threshold for graphics |
+| `#7C9BFF` on GitHub dark `#0D1117` | **7.20:1** |
+
+`#7C9BFF` was chosen so the dark variant sits at roughly the same contrast
+against its background as the original does against white. The mark then carries
+equal visual weight in either theme rather than looking timid in one, and the
+hue is preserved so it still reads as the same blue.
+
+The recolour is exact rather than a filter. All antialiasing in the source lives
+in the alpha channel, not in blended RGB, so replacing every pixel's RGB and
+keeping its alpha produces no halo, no resampling and no edge artefacts -- the
+two files have bit-identical alpha channels. Regenerate with:
+
+```bash
+python docs/assets/make_dark_variant.py
+```
+
 It supersedes the four-option exploration comp sheet that briefly lived here as
 `mark.png`, which was removed on 2026-09-08.
 
@@ -18,10 +46,7 @@ The mark is usable as it stands. These would make it complete:
 - [ ] `logo.svg` -- vector source. A raster lockup cannot be scaled for print,
       and 517 px is thin for a paper figure.
 - [ ] `logo-mono.svg` -- single-colour black and white, for print and embossing
-- [ ] `logo-dark.svg` -- **the most useful next one.** The transparent
-      background is right, but the mark itself is a saturated dark blue, which
-      is low-contrast against GitHub's near-black dark theme. A lightened
-      variant would fix that.
+- [x] ~~Dark-mode variant~~ -- done, `mark1-dark.png` (above)
 - [ ] `favicon.ico` -- 16/32/48 px, mark only, no wordmark
 - [ ] `mark-only.svg` -- the bone/peaks glyph without the wordmark, for places
       too small for the lockup
