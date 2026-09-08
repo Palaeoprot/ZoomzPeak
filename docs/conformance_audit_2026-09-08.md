@@ -17,6 +17,12 @@ L0.** That is expected — the levels were defined to measure this gap — but t
 the findings are real data problems rather than missing metadata, and one is a
 genuine unlock.
 
+> **A note on naming.** One dataset is referred to throughout as **Dataset A**.
+> It is anonymised because it is unpublished: naming it here, alongside its row
+> counts and the observation that it is the only dataset with resolved
+> archaeological context, would disclose more about work in progress than an
+> engineering audit needs to. The findings do not depend on the name.
+
 | Table family | Files | Schemas found | Level |
 |---|---|---|---|
 | ZooMS MS1 (MALDI) | 29 | **4** | **fails L0** |
@@ -36,7 +42,7 @@ The specification assumes one. Of 29 dataset files:
 `file_id, dataset_id, source_type, raw_path, sample_id, scan_number, rt,
 instrument, mz, intensity, n_peaks, is_centroided, extraction_strategy`
 
-**1 file — `Collins_2026_Rabin/spectra.parquet`, 16 columns.** Written by the
+**1 file — "Dataset A", 16 columns.** Written by the
 bespoke exporter (`10_Export_MZPeak_Parquet.py`) rather than the generalised one,
 and the two have silently diverged:
 
@@ -69,7 +75,7 @@ table produces nonsense at 3,900× the row count.
 Both files were moved to
 `ZooMS_parquet/zooms_ms1_maldi/_quarantine_2026-09-08/` (nothing deleted; the
 directory name deliberately falls outside the `dataset_id=*` glob). The tree now
-reads **27 files, 13,445 rows, 2 schemas** — 26 canonical plus Rabin.
+reads **27 files, 13,445 rows, 2 schemas** — 26 canonical plus Dataset A.
 
 Two corrections to what this section originally said:
 
@@ -106,7 +112,7 @@ match, and have the validator report unexpected files rather than skipping them.
 | *null* | 13,273 |
 | `'timsTOF fleX'` | 172 |
 
-Only the Rabin dataset records an instrument at all, and it is free text rather
+Only Dataset A records an instrument at all, and it is free text rather
 than an `MS:1000031` descendant. L1 requires a resolvable CV term for every row,
 so **L1 is currently unreachable for 26 of 29 datasets** — not because the binding
 is wrong, but because the value is absent.
@@ -119,11 +125,11 @@ Enum-valued columns are otherwise in decent shape and could be closed today:
 `extraction_strategy` ∈ {`mzxml_profile`, `mzml_profile`, `txt_profile`} —
 note `consolidated_csv` is declared by the exporter but never used;
 `source_type` ∈ {`external`, `internal`};
-`is_centroided` is `True` only for Rabin's 172 rows.
+`is_centroided` is `True` only for Dataset A's 172 rows.
 
 ## Finding 3a — WITHDRAWN: `shelfmark` mojibake (was a false positive)
 
-An earlier revision of this audit reported that the Rabin / Crafting Documents
+An earlier revision of this audit reported that Dataset A's
 `shelfmark` values were mojibake -- `Pi<U+FFFD>ce` where `Piece` with a grave accent
 was meant. **That was wrong, and the finding is withdrawn.**
 
@@ -299,7 +305,7 @@ Soon after:
 3. **Finding 4** — standardise on ZSTD at the next rebuild.
 4. **Finding 6** — join and type the inventory. This is the cheapest large win
    available and unlocks L2 for a substantial fraction of the estate.
-5. **Finding 1 (Rabin)** — promote `shelfmark` / `collection_name` / `provenance`
+5. **Finding 1 (Dataset A)** — promote `shelfmark` / `collection_name` / `provenance`
    into the shared schema rather than dropping them.
 
 Then:
