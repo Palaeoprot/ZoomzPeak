@@ -379,9 +379,25 @@ and opens a PR when an upstream term is obsoleted or relabelled.
 Ordered, each independently reviewable. Nothing is deleted from the source repos
 until step 8.
 
-1. **Rename** `ZoomzPeak` → `ZoomzPeak`; `git init`; add remote; push an empty
-   `main` with README + LICENSE + CODE_OF_CONDUCT so the repo is publicly legible
-   from day one.
+1. ~~**Scaffold**: `git init`, README + LICENSE + LICENSE-SPEC + CODE_OF_CONDUCT +
+   CONTRIBUTING + CITATION.cff + CHANGELOG + `.gitignore`, so the repo is publicly
+   legible from day one.~~ **Done 2026-09-08** (commit `51bb09f`, local only).
+
+   **Two things remain, and both need you — there is no `gh` CLI on this machine:**
+
+   a. **Rename the GitHub repo** `Palaeoprot/ZooMzPeak` → `Palaeoprot/ZoomzPeak`
+      (Settings → General → Repository name). GitHub redirects the old path.
+      If the repo does not exist yet, create it under the new name — empty, no
+      auto-generated README/licence/gitignore, since we already have all three.
+
+   b. **Then** the remote gets added and `main` pushed:
+      ```
+      git remote add origin https://github.com/Palaeoprot/ZoomzPeak.git
+      git push -u origin main
+      ```
+      This is the moment the work becomes public, so it should be a deliberate
+      act rather than something that happens automatically — say the word and I
+      will run it, or run it yourself.
 2. **Pre-publication review (§8.1)** of the ten code files from §1.1, *before* any
    of them is committed. This is the gate the public-from-day-one decision creates.
 3. **Copy** (not move) those files into `src/zoomzpeak/`, refactored from top-level
