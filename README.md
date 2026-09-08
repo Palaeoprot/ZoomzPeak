@@ -1,3 +1,5 @@
+<img src="docs/assets/mark1.png" alt="ZoomzPeak" width="260">
+
 # ZoomzPeak
 
 **A community standard for palaeoproteomics experiment metadata — and one
