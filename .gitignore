@@ -1,0 +1,75 @@
+# ---------------------------------------------------------------------------
+# ZoomzPeak is a CODE + SPECIFICATION repository.
+# No spectra, no raw instrument files, no parquet data. Ever.
+# See PLAN.md §1.2 and §2. The data lives in ~/Documents/parquet_master.
+# ---------------------------------------------------------------------------
+
+# Mass-spectrometry data — never commit
+*.parquet
+*.raw
+*.RAW
+*.mzML
+*.mzXML
+*.mzml
+*.mzxml
+*.mgf
+*.wiff
+*.wiff.scan
+*.baf
+*.fid
+*.d/
+*.imzML
+*.ibd
+*.mzpeak
+
+# Sequence databases
+*.fasta
+*.phasta
+
+# Search-engine output
+*.sage.tsv
+*.pin
+*.pepXML
+*.mzid
+
+# Vocabulary resolution cache (regenerable)
+vocab/.cache/
+
+# Secrets — provision interactively, inject via env, never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+token.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Logs and scratch
+*.log
+scratch/
+tmp/
