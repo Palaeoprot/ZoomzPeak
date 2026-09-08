@@ -64,9 +64,40 @@ These two dominate the row count: of 52,517,213 rows in the tree, **52,503,768
 non-conforming rows, and a per-peak table silently unioned with a per-spectrum
 table produces nonsense at 3,900× the row count.
 
-**Recommended:** move `picked_peaks.parquet` to the `picked/` tree, move or delete
-the test sample, and make the writer refuse to emit a file whose schema does not
-match. This is a correctness fix and should happen before publication, not after.
+### Resolved 2026-09-08 — with a correction
+
+Both files were moved to
+`ZooMS_parquet/zooms_ms1_maldi/_quarantine_2026-09-08/` (nothing deleted; the
+directory name deliberately falls outside the `dataset_id=*` glob). The tree now
+reads **27 files, 13,445 rows, 2 schemas** — 26 canonical plus Rabin.
+
+Two corrections to what this section originally said:
+
+1. **`picked_peaks.parquet` did not need moving to `picked/` — it was already
+   there.** The copy in the spectra tree was a **byte-identical duplicate** of
+   `picked/dataset_id=Parchment_QE_Values_24K/picked_peaks.parquet`, verified by
+   full-file SHA256 (`69546b9e…c29d1d`), matching row count, row-group count and
+   size. It was a leftover copy, not a misfiling, so it was quarantined for
+   deletion rather than relocated.
+
+2. **A third, undocumented spectra format was missed by this audit.**
+   `dataset_id=Parchment_QE_Values_24K/chunks/` holds **24 files, 29.5 GB,
+   19,945 real profile spectra** in the same schema as the quarantined test
+   sample (`spectrum_id, project_folder, filename, mz_min, mz_max, n_points,
+   tic, mz_array, intensity_array`). The original audit's glob
+   (`dataset_id=*/*.parquet`) does not descend one level, so these never appeared.
+
+   They are **left in place** — they are genuine data, and they do not break the
+   documented glob. But a *recursive* glob returns 51 files rather than 27, so
+   anything reading the tree recursively sees a schema the specification does not
+   define. Converting them to the canonical schema (or defining a documented
+   profile-spectra variant) is real follow-up work, not cleanup.
+
+   The wider lesson for the validator: **it must walk recursively.** A
+   single-level glob is exactly how these stayed invisible.
+
+**Still recommended:** make the writer refuse to emit a file whose schema does not
+match, and have the validator report unexpected files rather than skipping them.
 
 ## Finding 2 — `instrument` is null in 99% of ZooMS rows (blocks L1)
 
