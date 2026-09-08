@@ -85,7 +85,8 @@ The schema keeps `shelfmark` as a column precisely because the real one needs it
 
 ### Encoding note
 
-The real dataset's `shelfmark` values are currently mojibake — `Pi�ce` where
-`Pièce` is meant, a UTF-8/Latin-1 round-trip fault somewhere upstream in the
-CSV read. Worth fixing at the source before that column is ever populated in a
-published table; recorded here so the finding is not lost.
+The real dataset's `shelfmark` values were briefly reported as mojibake. They are
+not: the column holds the correct U+00E8 character and no replacement characters.
+The apparent corruption was a terminal rendering artifact. See Finding 3a of the
+[conformance audit](../../docs/conformance_audit_2026-09-08.md) -- kept there as a
+note on how *not* to check encodings.

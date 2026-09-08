@@ -121,16 +121,33 @@ note `consolidated_csv` is declared by the exporter but never used;
 `source_type` ∈ {`external`, `internal`};
 `is_centroided` is `True` only for Rabin's 172 rows.
 
-## Finding 3a — `shelfmark` values are mojibake
+## Finding 3a — WITHDRAWN: `shelfmark` mojibake (was a false positive)
 
-The Rabin / Crafting Documents dataset stores archival shelfmarks as `Pi�ce`
-where `Pièce` is meant — a UTF-8/Latin-1 round-trip fault upstream in the CSV
-read, affecting 155 distinct values.
+An earlier revision of this audit reported that the Rabin / Crafting Documents
+`shelfmark` values were mojibake -- `Pi<U+FFFD>ce` where `Piece` with a grave accent
+was meant. **That was wrong, and the finding is withdrawn.**
 
-Minor next to the other findings, but worth fixing **before** that column is ever
-populated in a published table: a corrupted shelfmark is a corrupted citation to a
-physical object, and mojibake tends to become permanent once it is downstream of a
-join. The fix belongs in the reader, not in the stored values.
+Verified at codepoint level: the column contains **U+00E8** (the correct character)
+and **zero** U+FFFD replacement characters across all 154 populated values. The
+source CSV is likewise clean UTF-8 -- all 320 high bytes pair correctly as
+`0xC3 0xA8` and `0xC3 0xA9`. The corruption was in the terminal rendering the audit
+was read through, not in the data.
+
+Recorded rather than deleted, because the failure mode generalises: **a validator
+must never diagnose an encoding fault from rendered output.** Encoding checks have
+to assert on codepoints (`'�' in value`) or on raw bytes. Anything that reads
+text through a display layer will report faults that are not there, and -- worse --
+miss faults that the display layer happens to smooth over. This belongs as a test
+in the validator.
+
+### What was worth doing anyway
+
+The CSV readers in the exporter called `pd.read_csv()` with no `encoding=`
+argument, relying on the platform default happening to be UTF-8. That worked here
+but is fragile: archival metadata is routinely hand-edited in Excel, which writes
+cp1252 on Windows, and the implicit default would then either raise or -- on a
+differently configured machine -- corrupt silently. The readers now specify the
+encoding explicitly. That is hardening, not a bug fix.
 
 ## Finding 3 — no file-level metadata anywhere
 
