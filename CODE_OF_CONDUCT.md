@@ -72,6 +72,16 @@ officially representing the community in public spaces.
 Instances of abusive, harassing, or otherwise unacceptable behaviour may be
 reported to the project maintainers at **matthew@palaeome.org**.
 
+ZoomzPeak is a **PAASTA** initiative (Palaeoproteomics And Archaeology, Society
+for Techniques and Advances). If a report concerns a project maintainer, or you
+would rather not raise it with the maintainers directly, it can be taken to the
+PAASTA community organisers instead — see https://paasta-community.github.io/.
+
+Much of PAASTA is early-career researchers, for whom raising a concern about a
+senior colleague carries real professional risk. That is taken seriously here:
+reports are handled confidentially, and no one should be worse off for making
+one in good faith.
+
 All complaints will be reviewed and investigated promptly and fairly. All
 community leaders are obligated to respect the privacy and security of the
 reporter of any incident.

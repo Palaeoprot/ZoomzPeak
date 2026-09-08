@@ -21,6 +21,9 @@ depended on.
 - Logo (option 2, "Collagen Fragment") as `docs/assets/mark.png`.
 
 ### Decided
+- ZoomzPeak is a **PAASTA** initiative (Palaeoproteomics And Archaeology, Society
+  for Techniques and Advances). Sole-authored at present; authorship broadens as
+  the community contributes.
 - Project name is **ZoomzPeak**, following the wordmark. The GitHub repository is
   renamed from `ZooMzPeak` to match.
 - Scope covers **both** the ZooMS (MALDI-ToF MS1) and the LC-MS/MS (MS2 + MS1

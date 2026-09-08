@@ -4,6 +4,10 @@
 
 **An open, ontology-anchored Parquet format for ZooMS and palaeoproteomics data.**
 
+A [**PAASTA**](https://paasta-community.github.io/) initiative — Palaeoproteomics
+And Archaeology, Society for Techniques and Advances, a [EuPA](https://eupa.org/)
+initiative and an early-career-driven open-science community.
+
 > **Pre-release.** The specification is being drafted in the open and nothing here
 > is stable yet. See [`PLAN.md`](PLAN.md) for the full design and migration plan,
 > and [open an issue](../../issues) or join the chat (below) to shape it.
@@ -72,11 +76,28 @@ bindings**, especially any marked `provisional`. See [`CONTRIBUTING.md`](CONTRIB
 
 If your lab's ZooMS peaklist format does not load, that is a bug worth reporting.
 
-## Discussion
+## Community and discussion
 
-Development of this metadata standard is discussed in the open:
+ZoomzPeak is a **PAASTA** initiative. PAASTA is an international, early-career-led
+community for palaeoproteomics, committed to open and collaborative science, and
+running under [EuPA](https://eupa.org/). A community-owned data standard is exactly
+the kind of thing it exists to make possible — so this is not a format one lab is
+publishing and inviting comment on, it is one the community is building.
 
-**[Matrix room](https://matrix.to/#/!QpobrZgJZFYpmEnoKa:matrix.org?via=matrix.org&via=archaeo.social)**
+- **[Matrix / Element room](https://matrix.to/#/!QpobrZgJZFYpmEnoKa:matrix.org?via=matrix.org&via=archaeo.social)**
+  — development of this metadata standard, day to day
+- [PAASTA community site](https://paasta-community.github.io/)
+
+If you work with ZooMS or ancient proteins and something here does not fit how your
+lab actually works, saying so is the most valuable thing you can do. See
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+### Related community work
+
+This project builds on the standards conversation PAASTA and the wider community
+are already having, in particular Dekker et al., *Open science, communication, and
+collaboration for the future of palaeoproteomics*, and ongoing work on emerging
+standards in the field.
 
 ## Licence
 
