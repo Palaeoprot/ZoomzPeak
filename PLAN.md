@@ -542,7 +542,8 @@ and re-run the check for any later bulk copy from a private repo.
 
 ## 10. Visual identity
 
-`mark.png` (1536×1024) is a **four-option exploration sheet**, not a finished mark:
+`mark.png` (1536×1024) was a **four-option exploration sheet**, not a finished
+mark -- removed from the repository on 2026-09-08, see §10.3:
 four candidate logos with captions and a "RECOMMENDED" badge on option 1. Useful
 input, but not yet something a repo can ship. What follows is an assessment and
 what is needed to turn it into a usable asset.
@@ -563,8 +564,7 @@ README logo spells the project differently from its URL looks unfinished.
 | **4. Taxonomic Peak** | Triangle with negative-space layers | The internal negative space is the whole idea and it is the first thing to disappear below ~32 px. The vertebrate reading is not legible even at full size. Would need heavy simplification. |
 
 Ranked: **2 > 1 > 4 > 3**. **Option 2 is chosen.** Options 1, 3 and 4 are retired;
-keep `mark.png` in `docs/assets/` as a record of the exploration, but only option 2
-is developed further.
+only option 2 is developed further. The comp sheet itself is no longer committed.
 
 Because option 2 was chosen, §10.3's small-size worries are largely answered — the
 bone silhouette is a solid mass with no internal negative space, so it survives
@@ -587,6 +587,13 @@ three at favicon scale.
 5. **The gradient goes.** There is a blue-to-blue gradient in these comps. It will
    not survive small sizes, monochrome, or fax-quality print. Flat colour.
 6. **Files:** `docs/assets/logo.svg`, `logo-mono.svg`, `logo-dark.svg`, `favicon.ico`.
+
+**Removed 2026-09-08.** `mark.png` is no longer committed. A 1.2 MB raster comp
+sheet of four captioned candidates was never a usable identity asset, and its
+provenance was still unrecorded -- which sits badly in a repository whose own
+rule is that nothing ships half-finished and undocumented. `docs/assets/README.md`
+records what is needed before a mark is committed again. The file remains
+reachable in git history; it was removed from the tree, not purged.
 
 ### 10.4 Two things to settle before the mark is public
 
