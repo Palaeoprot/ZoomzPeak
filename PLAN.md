@@ -193,6 +193,41 @@ entity-type / data-kind extension mechanism — the same mechanism it uses for M
 imaging, which is architecturally the closest existing case (per-pixel rather than
 per-elution-time).
 
+### 4.1a Why one MS1 store — the architectural rationale
+
+The reason a single format can cover both techniques, rather than this being two
+specs sharing a repository:
+
+**mzPeak separates data by MS level.** ZooMS (MALDI-ToF) is **MS1-only** -- a
+peptide mass fingerprint with no fragmentation. LC-MS/MS produces MS1 precursor
+survey signal *and* MS2 fragment spectra. So a ZooMS spectrum and an LC-MS/MS MS1
+scan are the same kind of object: a list of m/z values with intensities.
+
+The differences that matter -- no retention time, single-shot acquisition, MALDI
+matrix rather than a column -- are things *metadata* should record, not things
+that justify two incompatible formats.
+
+**Why it matters practically:** many palaeoproteomic studies run ZooMS as a cheap
+species screen across hundreds of specimens, then LC-MS/MS on the interesting
+subset. That is one experiment with one set of sample metadata, currently split
+across two data estates with the metadata duplicated, diverging, or missing on one
+side. The audit (`docs/conformance_audit_2026-09-08.md`) found exactly this: the
+ZooMS spectra tree and the LC-MS/MS MS1 envelope tree are two pipelines, two
+schemas, and two compression codecs, describing overlapping specimens.
+
+Unifying the MS1 layer makes the screen-to-follow-up link a join rather than a
+filename convention, and makes cross-technique questions askable without bespoke
+plumbing per study.
+
+**One dependency to confirm.** This rests on how mzPeak separates MS levels in its
+data model. The v0.9 description (Parquet tables plus a JSON index, with
+entity-type / data-kind extension points) is consistent with it, but the precise
+mechanism has not been verified against the specification text -- it is on the
+list for the HUPO-PSI conversation (§10.4). If the separation works differently
+than assumed, §4.2's two-representation design absorbs the change; the unification
+argument itself does not depend on the mechanism, only on MS1 and MS2 being
+distinguishable.
+
 ### 4.2 Two representations, one schema
 
 - **Analysis form (primary, what we already have):** Hive-partitioned parquet
