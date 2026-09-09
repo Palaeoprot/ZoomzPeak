@@ -71,6 +71,38 @@ def _usable_mz(value) -> bool:
         return False
 
 
+#: Isotope spacing (Da). The API returns the *monoisotopic* m/z while alpharaw's
+#: spectrum_df carries the *selected* m/z, and when the instrument isolated a heavier
+#: isotope the two differ by a whole number of these steps divided by the charge.
+ISOTOPE_DA = 1.00335
+
+#: Largest isotope offset treated as "same precursor". Instruments select at most a
+#: couple of steps off monoisotopic; allowing more would start matching neighbours.
+MAX_ISOTOPE_STEPS = 3
+
+
+def _same_precursor(api_mz: float, df_mz: float) -> bool:
+    """True if two m/z describe the same precursor, allowing an isotope offset.
+
+    A straight equality test scored a stable 10-20% of scans on any real file as
+    disagreements -- the API reports monoisotopic m/z, spectrum_df reports what was
+    selected, and those differ by k * 1.00335 / z whenever a heavier isotope was
+    isolated. That is what refused a genuine sample at 82% over 200 probes, after the
+    blank-scoring fix had already been applied.
+
+    This stays discriminating: a wrong scan offset yields an unrelated precursor, not
+    one an isotope step away, so admitting these does not admit off-by-one mappings.
+    """
+    d = abs(api_mz - df_mz)
+    if d <= MZ_TOLERANCE_DA:
+        return True
+    for z in range(1, 7):
+        for k in range(1, MAX_ISOTOPE_STEPS + 1):
+            if abs(d - k * ISOTOPE_DA / z) <= MZ_TOLERANCE_DA:
+                return True
+    return False
+
+
 def score_offset(probe_rows, api_mz_for_scan, first: int, last: int, offset: int):
     """Agreement for one candidate offset. Returns (agreed, checked).
 
@@ -93,7 +125,7 @@ def score_offset(probe_rows, api_mz_for_scan, first: int, last: int, offset: int
         if not _usable_mz(api_mz):
             continue
         checked += 1
-        if abs(float(api_mz) - float(df_mz)) <= MZ_TOLERANCE_DA:
+        if _same_precursor(float(api_mz), float(df_mz)):
             agreed += 1
     return agreed, checked
 
