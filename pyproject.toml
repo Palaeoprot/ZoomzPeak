@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zoomzpeak"
+version = "0.1.0.dev0"
+description = "A community standard for palaeoproteomics experiment metadata, and one compressed data format for both halves of the experiment."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "The ZoomzPeak contributors" }]
+keywords = ["palaeoproteomics", "ZooMS", "mass-spectrometry", "mzPeak", "parquet", "archaeology"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Programming Language :: Python :: 3",
+]
+
+# Deliberately minimal. Vendor readers are heavy, platform-specific and not needed to
+# read or validate an existing store -- they are only required to BUILD one from raw
+# instrument files. Keeping them optional means `pip install zoomzpeak` works on a
+# Linux CI box with no .NET runtime.
+dependencies = [
+    "pandas>=2.0",
+    "pyarrow>=14",
+    "numpy>=1.24",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+# Readers for vendor formats. thermo/bruker/sciex pull in a .NET or vendor-DLL bridge.
+raw = ["alpharaw>=0.4", "pyteomics>=4.6"]
+peakpick = ["scipy>=1.10", "pyZooMS"]
+dev = ["pytest>=7.4", "ruff>=0.5"]
+all = ["zoomzpeak[raw,peakpick,dev]"]
+
+[project.scripts]
+zoomzpeak = "zoomzpeak.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Palaeoprot/ZoomzPeak"
+Specification = "https://github.com/Palaeoprot/ZoomzPeak/tree/main/spec"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+zoomzpeak = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
