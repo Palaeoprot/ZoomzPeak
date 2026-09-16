@@ -355,51 +355,117 @@ be building a worse triplestore.
 
 ### 4.7 The cross-technique join, concretely
 
-§4.1a asserts the two techniques surface the same peptides. The join that cashes
-that in is **not an equality join**, and the schema has to be built for it:
+§4.1a asserts the two techniques surface the same peptides. Two things have to be
+true of the join that cashes that in, and they pull in opposite directions:
 
-- **ZooMS** is singly charged: `M = (m/z) − 1.00728`
-- **LC-MS/MS MS1** is multiply charged: `M = z·(m/z) − z·1.00728`, with `z` inferred
-  from the isotope envelope
+- **The peptide lists will never match completely, and that is not a defect.**
+  MALDI and ESI ionise different subsets of the same digest, and LC-MS/MS — with
+  chromatographic separation and far greater dynamic range — will routinely see
+  peptides MALDI never had a chance to ionise. A partial overlap is the expected
+  result, not a sign that something is wrong.
+- **But the peptides seen by both are the same tryptic peptides, so their masses
+  must agree** once each instrument's systematic error is corrected. Agreement on
+  the shared subset is the thing the join tests; completeness of the subset is not.
 
-Both must be deconvoluted to neutral monoisotopic mass, then matched **within a
-tolerance that differs by instrument** — MALDI-ToF at tens-to-hundreds of ppm,
-Orbitrap MS1 at single-figure ppm — so the window is mass-dependent and asymmetric,
-not a fixed Δ. That is a range join, which DuckDB optimises natively and a
-dataframe library does not:
+Both sides reduce to neutral monoisotopic mass by arithmetic, not by a model:
+
+- **ZooMS** is singly charged: `M = (m/z) − 1.007276`
+- **LC-MS/MS MS1** is multiply charged: `M = z·(m/z) − z·1.007276`, with `z` read
+  off the isotope spacing, which is `1.00335 / z` in m/z — 1.003 for `z=1`, 0.502
+  for `z=2`, 0.334 for `z=3`
+
+There is no proprietary deconvolution step here and nothing to version. What *does*
+vary between pipelines is which peak the arithmetic was applied to, and how large
+the residual error is on each instrument — which is what the rest of this section is
+about.
+
+#### The mass-error model, and why the join must be two-pass
+
+The error on each side is mostly **systematic and correctable**, not random. Treating
+it as random forces a tolerance window wide enough to swallow the worst case, which
+then admits collagen peptides that are genuinely different. Correcting first and
+matching second gives a much tighter window and a much cleaner result.
+
+**MALDI-ToF (ZooMS)** — three distinct sources, only one of which is noise:
+
+| Source | Character | Handling |
+|---|---|---|
+| Poor peak shape | Centroid is measured inaccurately; per-peak, roughly random | Exclude from calibration anchors; widen tolerance for these peaks only |
+| Unresolved neighbouring peaks | Two peptides within the peak width; centroid is pulled between them | Flag; the peak is not a reliable anchor and its mass is not trustworthy |
+| Drift across the mass range | **Systematic** — low and high masses are offset differently | Correctable: fit a linear correction on the well-shaped major peaks |
+
+**LC-MS/MS** — error is dominated by the instrument's initial calibration, again a
+systematic offset per run rather than per peak.
+
+**Both instruments show larger ppm errors at larger masses**, so the tolerance is a
+function of mass, not a constant. §4.6's registry should therefore carry the
+tolerance model per run (its parameters, and how they were established) rather than
+leaving a magic number in query code.
+
+This gives a **two-pass join**:
+
+1. **Calibrate.** Match only high-confidence anchors — well-shaped, major, unblended
+   peaks, spanning the mass range — and fit a linear correction of ppm residual
+   against mass, per run. The collagen markers are good anchors precisely because
+   they are the strong, well-shaped peaks in a ZooMS spectrum.
+2. **Match.** Re-join with the correction applied and a residual tolerance that is
+   now small, because the systematic component has been removed.
 
 ```sql
+-- pass 2: join on calibrated masses. `mass_tol_ppm(mass)` and the per-run
+-- correction both come from the registry (§4.6), not from hard-coded constants.
 SELECT z.sample_id,
-       z.neutral_mass AS zooms_mass,
-       l.neutral_mass AS lcms_mass,
+       z.neutral_mass       AS zooms_mass_raw,
+       z.neutral_mass_cal   AS zooms_mass,
+       l.neutral_mass_cal   AS lcms_mass,
        l.charge,
-       1e6 * (l.neutral_mass - z.neutral_mass) / z.neutral_mass AS ppm_error
+       1e6 * (l.neutral_mass_cal - z.neutral_mass_cal) / z.neutral_mass_cal AS ppm_error,
+       -- 0 = clean; ±1, ±2 = isotope-peak assignment error, not a different peptide
+       ROUND((l.neutral_mass_cal - z.neutral_mass_cal) / 1.00335) AS c13_offset
 FROM   'zooms/**/*.parquet'    z
 JOIN   'lcms_ms1/**/*.parquet' l
-  ON   l.sample_id = z.sample_id                     -- §4.6: this is a real key
- AND   l.neutral_mass BETWEEN z.neutral_mass * (1 - 200e-6)
-                          AND z.neutral_mass * (1 + 200e-6)
+  ON   l.sample_id = z.sample_id                    -- §4.6: this is a real key
+ AND   l.neutral_mass_cal BETWEEN z.neutral_mass_cal - 1.5 * 1.00335
+                              AND z.neutral_mass_cal + 1.5 * 1.00335
+WHERE  ABS(ppm_error - c13_offset * 1.00335 * 1e6 / z.neutral_mass_cal)
+         <= mass_tol_ppm(z.neutral_mass_cal)
 ```
 
-Three schema consequences, each of which is a principle already in this plan:
+The window is deliberately opened to ±1.5 isotope spacings so that isotope-assignment
+errors are *caught* rather than silently dropped — see below.
 
-- **Charge is a hypothesis, not an observation.** Deconvolution is fallible, so keep
-  observed `mz`, inferred `charge`, and derived `neutral_mass` as separate columns,
-  with the deconvolution method and version recorded. A neutral mass is a *derived
-  quantity* and falls under principle 4 — it is a model output, and must carry the
-  model that produced it.
+#### Schema consequences
+
+- **Record monoisotopic-versus-apex, per feature list.** Above roughly 1.8 kDa the
+  monoisotopic peak is no longer the most intense in the envelope, and the ZooMS
+  collagen markers sit squarely in that range. A feature finder reporting the apex
+  rather than the monoisotopic peak yields a neutral mass wrong by exactly
+  1.00335 Da — about 500 ppm at 2 kDa, far outside any sane window. That does not
+  create a false match; it creates a **silent miss**, and because it is systematic
+  it looks exactly like the ionisation-bias story above. Two different causes, one
+  signature. So: one flag per source saying which peak was reported, plus the tool
+  that produced it, and the `c13_offset` column above as the diagnostic. Unmatched
+  peaks clustering at `c13_offset = ±1` are an assignment problem in one pipeline,
+  not biology.
+- **Charge is arithmetic, except when the envelope is ambiguous.** Two cases where
+  `z` becomes a judgement rather than a reading, and both need flagging: an envelope
+  truncated or under-resolved at low intensity, where the spacing cannot be measured
+  confidently and a wrong `z` rescales the entire mass; and interleaved envelopes
+  from co-eluting peptides. Keep observed `mz`, inferred `charge`, and derived
+  `neutral_mass` as separate columns so a suspect charge call can be revisited
+  without rebuilding.
 - **Mass coincidence is not peptide identity.** Collagen tryptic peptides collide
   within any realistic window. The join is a **candidate generator**; confirmation
-  comes from the MS2-derived identification. The registry should therefore express
-  the full chain — ZooMS peak → MS1 feature → MS2 PSM → peptide sequence — as
-  foreign keys, so a match can state which of those hops it actually rests on.
-- **Absence is mostly ionisation, not absence.** MALDI and ESI have different
-  ionisation biases; the overlap in detected peptides is real but partial. A peptide
-  seen by LC-MS/MS and not by ZooMS is usually a peptide MALDI was never going to
-  ionise well. Any cross-technique table must therefore record whether a technique
-  *had the opportunity* to observe a given peptide, separately from whether it did —
-  otherwise the join manufactures a finding out of an instrument artifact. This is
-  principle 2 in a new place: no forced mapping, and no silent one either.
+  comes from the MS2-derived identification. The registry should express the full
+  chain — ZooMS peak → MS1 feature → MS2 PSM → peptide sequence — as foreign keys,
+  so a match can state which of those hops it actually rests on.
+- **Record opportunity to observe, separately from observation.** Given the first
+  bullet of this section, a cross-technique table must distinguish "this technique
+  did not detect the peptide" from "this technique was never going to detect it".
+  Without that column the expected, uninteresting ionisation asymmetry is
+  indistinguishable from a real finding — and, per the monoisotopic case above,
+  from a pipeline bug. This is principle 2 in a new place: no forced mapping, and
+  no silent one either.
 
 ### 4.5 Sidecar contract
 
@@ -599,9 +665,11 @@ until step 8.
    cannot drift from the spec.
 
    8b. **Demonstrate the cross-technique join (§4.7)** on the specimens the audit
-   found in both trees, as `examples/`. This is the first test of whether §4.1a's
-   claim survives contact with the data, and the place any `sample_id` divergence
-   between the two pipelines will surface concretely.
+   found in both trees, as `examples/`. Both passes: fit the per-run linear mass
+   correction on well-shaped anchor peaks, then match on calibrated masses with the
+   `c13_offset` diagnostic reported. This is the first test of whether §4.1a's claim
+   survives contact with the data, and the place any `sample_id` divergence between
+   the two pipelines will surface concretely.
 9. **Additive schema bump** (§4.4) → rebuild the 29 datasets to L1 → then, and only
    then, replace the originals in `MS1-Data`/`MS2-Data` with a stub pointing at
    ZoomzPeak, and update `WALKTHROUGH.md`'s links.
@@ -694,10 +762,6 @@ and re-run the check for any later bulk copy from a private repo.
    (Postgres) question. Deferred deliberately: nothing in §4.6 has to change to make
    the move later, and adopting a server before there are concurrent writers buys
    operational cost and no guarantee.
-5. **Deconvolution provenance (§4.7)** — whose charge-state deconvolution do the
-   LC-MS/MS `neutral_mass` values come from, and is the method and version recorded
-   anywhere today? If not, the column is a model output with no model attached, which
-   principle 4 does not permit.
 
 ---
 
