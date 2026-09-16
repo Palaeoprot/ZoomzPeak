@@ -167,13 +167,19 @@ ZoomzPeak/
 │   ├── peakpick.py               ← from 13_Pick_Peaks_ZooMS.py
 │   ├── sidecar.py                ← experiments_metadata JSON contract + validator
 │   ├── cv.py                     ← term lookup, OLS resolution, cache
+│   ├── registry.py               ← §4.6 DuckDB catalogue: build, constrain, query
 │   ├── mzpeak_export.py          ← §4.2 bridge to a real .mzpeak container
 │   └── validate.py               ← the conformance checker
 │
-├── cli/                          ← `zoomzpeak build|pick|validate|export|describe`
+├── registry/
+│   ├── schema.sql                ← §4.6 DDL: keys, foreign keys, CHECK constraints
+│   └── README.md                 ← how to rebuild the catalogue; it is an artifact, not a source
+│
+├── cli/                          ← `zoomzpeak build|pick|validate|export|describe|registry`
 ├── tests/  +  fixtures/          ← tiny synthetic spectra, public-domain only
 ├── docs/                         ← rendered spec, column reference, examples
-├── examples/                     ← notebooks: query with DuckDB, round-trip to mzPeak
+├── examples/                     ← notebooks: query with DuckDB, round-trip to mzPeak,
+│                                 the §4.7 ZooMS↔LC-MS/MS mass join
 └── .github/workflows/ci.yml      ← lint + tests + `validate` over fixtures
 ```
 
@@ -266,6 +272,134 @@ Additive only — existing readers keep working:
 | *(new)* `matrix_cv_id` | MALDI matrix (CHCA etc.), PSI-MS matrix-solution family |
 | *(new)* `digestion_cv_id` | enzyme, PSI-MS `MS:1001045` family |
 | *(new)* `spectrum_id` | stable, content-addressed spectrum identifier for citation |
+
+### 4.6 The registry — identity and constraints the parquet cannot hold
+
+Parquet is the right store for signal arrays and the wrong store for *identity*. It
+has no notion of a key, so nothing in the estate can currently enforce that a
+`sample_id` means the same specimen on both sides of §4.1a, or that a `taxon` value
+is a real NCBITaxon term, or that design principle 1 ("every field records how it
+was established") actually holds on a contributed dataset. Those are today enforced
+only by builder-code discipline — which is exactly the guarantee a *community*
+standard cannot rely on, because contributions arrive from people who have not read
+the builder code.
+
+The audit's central finding (`docs/conformance_audit_2026-09-08.md`) — two pipelines,
+two schemas, overlapping specimens — is a referential-integrity failure, and
+referential integrity is a relational problem.
+
+So: **a registry, as a DuckDB catalogue file, alongside (not instead of) the parquet.**
+
+- **The signal arrays stay exactly where they are.** Hive-partitioned parquet under
+  `parquet_master`, unchanged, still the analysis form of §4.2. Nothing moves.
+- **The registry holds only identity and context**: samples, runs, datasets, the
+  resolved CV bindings, and the provenance tag on every context field. Thousands of
+  samples and tens of thousands of runs — a file of megabytes, not gigabytes.
+- **DuckDB, not a server.** It is an in-process engine (`pip install duckdb`, no
+  daemon, no port) that reads the existing parquet trees directly, so adopting it
+  costs no architectural commitment and no migration. A single-writer file also
+  versions in git and reviews as a diff, which suits a specification repository.
+
+The registry is generated from the parquet estate plus the sidecars — it is a
+**build artifact, not a second source of truth.** If it is deleted it can be rebuilt;
+if it cannot be rebuilt without a constraint violation, that violation is the
+finding.
+
+#### Constraints — the conformance levels, made mechanical
+
+The point of the registry is that §4.3's levels stop being a checklist and become
+things the store will simply refuse to hold. Sketch, not final DDL:
+
+```sql
+-- L0/L1: identity and vocabulary
+CREATE TABLE sample (
+  sample_id        TEXT PRIMARY KEY,
+  taxon_cv_id      TEXT REFERENCES cv_term(cv_id),   -- NCBITaxon, not free text
+  element_cv_id    TEXT REFERENCES cv_term(cv_id),
+  -- principle 1: a value may be absent, but never unattributed
+  taxon_source     TEXT NOT NULL,
+  element_source   TEXT NOT NULL,
+  CHECK (taxon_cv_id IS NULL OR taxon_source <> 'guess')
+);
+
+CREATE TABLE run (
+  run_id           TEXT PRIMARY KEY,
+  sample_id        TEXT NOT NULL REFERENCES sample(sample_id),
+  technique        TEXT NOT NULL CHECK (technique IN ('ZooMS-MALDI','LC-MS/MS')),
+  instrument_cv_id TEXT NOT NULL REFERENCES cv_term(cv_id),
+  rt_is_physical   BOOLEAN NOT NULL,
+  -- principle 2: MALDI has no time axis, so it may not claim one (§4.4, `rt`)
+  CHECK (technique <> 'ZooMS-MALDI' OR rt_is_physical = FALSE)
+);
+```
+
+Three things follow, and they are the actual argument for doing this:
+
+1. **`validate` gets a second, harder implementation.** "Does this dataset load into
+   the registry without violating a constraint?" is a more honest conformance test
+   than field-by-field inspection, and it cannot drift from the spec the way a
+   hand-written checker can.
+2. **`FOREIGN KEY` is the ZooMS↔LC-MS/MS link.** §4.1a's "the link becomes a join"
+   is only true if `sample_id` is a key. Here it is one.
+3. **The vocabulary hierarchy comes along.** §4.3's "`instrument` is a valid
+   `MS:1000031` descendant" needs *descendant*, which is a graph traversal, not a
+   join. Materialise a closure table — `(term, ancestor)` pairs — from `vocab/*.yaml`
+   as a build step, and the descendant test becomes an ordinary `REFERENCES`. The
+   YAML stays the source of truth, so §5's principle 3 (bindings are data, not code)
+   is untouched.
+
+Ontology hierarchies belong in a closure table or, if and when the archaeological
+half is published as Linked Open Data through NFDI4Objects (§5.5), in a triplestore
+with SPARQL. They do not belong in a general-purpose relational schema; that would
+be building a worse triplestore.
+
+### 4.7 The cross-technique join, concretely
+
+§4.1a asserts the two techniques surface the same peptides. The join that cashes
+that in is **not an equality join**, and the schema has to be built for it:
+
+- **ZooMS** is singly charged: `M = (m/z) − 1.00728`
+- **LC-MS/MS MS1** is multiply charged: `M = z·(m/z) − z·1.00728`, with `z` inferred
+  from the isotope envelope
+
+Both must be deconvoluted to neutral monoisotopic mass, then matched **within a
+tolerance that differs by instrument** — MALDI-ToF at tens-to-hundreds of ppm,
+Orbitrap MS1 at single-figure ppm — so the window is mass-dependent and asymmetric,
+not a fixed Δ. That is a range join, which DuckDB optimises natively and a
+dataframe library does not:
+
+```sql
+SELECT z.sample_id,
+       z.neutral_mass AS zooms_mass,
+       l.neutral_mass AS lcms_mass,
+       l.charge,
+       1e6 * (l.neutral_mass - z.neutral_mass) / z.neutral_mass AS ppm_error
+FROM   'zooms/**/*.parquet'    z
+JOIN   'lcms_ms1/**/*.parquet' l
+  ON   l.sample_id = z.sample_id                     -- §4.6: this is a real key
+ AND   l.neutral_mass BETWEEN z.neutral_mass * (1 - 200e-6)
+                          AND z.neutral_mass * (1 + 200e-6)
+```
+
+Three schema consequences, each of which is a principle already in this plan:
+
+- **Charge is a hypothesis, not an observation.** Deconvolution is fallible, so keep
+  observed `mz`, inferred `charge`, and derived `neutral_mass` as separate columns,
+  with the deconvolution method and version recorded. A neutral mass is a *derived
+  quantity* and falls under principle 4 — it is a model output, and must carry the
+  model that produced it.
+- **Mass coincidence is not peptide identity.** Collagen tryptic peptides collide
+  within any realistic window. The join is a **candidate generator**; confirmation
+  comes from the MS2-derived identification. The registry should therefore express
+  the full chain — ZooMS peak → MS1 feature → MS2 PSM → peptide sequence — as
+  foreign keys, so a match can state which of those hops it actually rests on.
+- **Absence is mostly ionisation, not absence.** MALDI and ESI have different
+  ionisation biases; the overlap in detected peptides is real but partial. A peptide
+  seen by LC-MS/MS and not by ZooMS is usually a peptide MALDI was never going to
+  ionise well. Any cross-technique table must therefore record whether a technique
+  *had the opportunity* to observe a given peptide, separately from whether it did —
+  otherwise the join manufactures a finding out of an instrument artifact. This is
+  principle 2 in a new place: no forced mapping, and no silent one either.
 
 ### 4.5 Sidecar contract
 
@@ -447,10 +581,27 @@ until step 8.
    `archaeo_context.cv.yaml` (LADO-anchored, §5.4); add `prefixes.yaml`.
 6. **Generate `schema.py` from `vocab/`** so the pyarrow schema and the CV binding
    are provably the same artifact.
+
+   6a. **Materialise the CV closure tables** — `(term, ancestor)` pairs per
+   vocabulary, generated from the same `vocab/*.yaml` — so hierarchy tests such as
+   "is a descendant of `MS:1000031`" become ordinary joins (§4.6). Build artifact,
+   regenerated whenever a binding changes.
 7. **Write the spec** (`spec/mzPeakMS-ZooMS-v0.1.md`), folding the two existing
    MS2-Data documents in as `spec/rationale.md`.
 8. **Implement `validate` and `mzpeak_export`**; run `validate` over all 29
    datasets and publish the report as `docs/conformance_status.md`.
+
+   8a. **Build the registry (§4.6)** from the 29 datasets plus their sidecars, with
+   `registry/schema.sql` enforced. Expect this to fail the first time — that is the
+   point: every constraint violation is a finding the audit could only describe in
+   prose. Publish the violations alongside the conformance report, then wire
+   `zoomzpeak validate` to use a registry load as its L0/L1 check so the checker
+   cannot drift from the spec.
+
+   8b. **Demonstrate the cross-technique join (§4.7)** on the specimens the audit
+   found in both trees, as `examples/`. This is the first test of whether §4.1a's
+   claim survives contact with the data, and the place any `sample_id` divergence
+   between the two pipelines will surface concretely.
 9. **Additive schema bump** (§4.4) → rebuild the 29 datasets to L1 → then, and only
    then, replace the originals in `MS1-Data`/`MS2-Data` with a stub pointing at
    ZoomzPeak, and update `WALKTHROUGH.md`'s links.
@@ -537,6 +688,16 @@ and re-run the check for any later bulk copy from a private repo.
    object (theoretical, not observed). Own schema in this spec, or out of scope?
 3. **Logo vector source** — option 2 is chosen; can you supply (or regenerate) it
    as SVG, and confirm the artwork's provenance for §10.4?
+4. **Registry write model (§4.6)** — a single-writer DuckDB file versioned in git is
+   right for a spec repository and reviews as a diff. If community contributions
+   reach the point of concurrent writers from several labs, that becomes a server
+   (Postgres) question. Deferred deliberately: nothing in §4.6 has to change to make
+   the move later, and adopting a server before there are concurrent writers buys
+   operational cost and no guarantee.
+5. **Deconvolution provenance (§4.7)** — whose charge-state deconvolution do the
+   LC-MS/MS `neutral_mass` values come from, and is the method and version recorded
+   anywhere today? If not, the column is a model output with no model attached, which
+   principle 4 does not permit.
 
 ---
 
