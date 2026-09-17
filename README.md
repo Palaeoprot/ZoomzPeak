@@ -228,10 +228,31 @@ a single all-or-nothing check:
    belong in their own repositories with their model.
 5. **The data stays where it is.** This repository never holds spectra.
 
+## Linked ontology: CODHMO
+
+ZoomzPeak records **what was measured**. What a measurement is taken to *mean* —
+which object and layer a sample came from, which species or material it might
+indicate, and which hypotheses compete — lives in a separate ontology:
+[**CODHMO**](https://github.com/Palaeoprot/CODHMO), the CODICUM Heritage Material
+Ontology. It reuses CIDOC-CRM, CRMsci, CRMinf and PROV-O and keeps every
+identification as a hypothesis, never a fact.
+
+The two are joined by reference, not by copying data:
+
+- A CODHMO observation points at a ZoomzPeak row through a `codhmo:SourceRecord`:
+  the table (`ZOOMS_SPECTRA`, `MS2_SPECTRA` or `MS1_ENVELOPE`), the row's key
+  columns, and the ZoomzPeak `schema_version` it was written against.
+- Spectra never enter the graph; the graph never enters the parquet.
+- Until ZoomzPeak ships a stable `spectrum_id`, rows are located by their natural
+  keys (`dataset_id` + `file_id` for ZooMS; `dataset_id` + `raw_filename` +
+  `scan_number` for MS2). Renaming files or re-ingesting a dataset breaks those
+  links, which is why `spectrum_id` is on the schema roadmap.
+
 ## Standards and communities we build on
 
 | | |
 |---|---|
+| [**CODHMO**](https://github.com/Palaeoprot/CODHMO) | Heritage-material ontology that interprets ZoomzPeak measurements. See [Linked ontology](#linked-ontology-codhmo). |
 | [**mzPeak**](https://www.mzpeak.org/) | HUPO-PSI's successor to mzML. `mzPeakMS-ZooMS` is a profile of it. |
 | [**PSI-MS CV**](https://www.ebi.ac.uk/ols4/ontologies/ms) | Controlled vocabulary for the measurement half. |
 | [**SDRF-Proteomics**](https://github.com/bigbio/proteomics-sample-metadata) | Sample-metadata sidecars. |
