@@ -6,7 +6,7 @@ relatedTo: [parquet-master, ms1-data, ms2-data, reference-data, pyzooms]
 ---
 
 # ZoomzPeak — Migration & Design Plan
-**Date & Time:** 2026-09-08 (+02:00)
+**Date & Time:** 2026-09-27 10:14:00 (+02:00)
 
 A plan for extracting the parquet-building work out of `MS1-Data` / `MS2-Data` /
 `Reference-Data` into a single public repository, and for giving the ZooMS parquet
@@ -129,6 +129,9 @@ determines whether §5's `arch:` prefix resolves in v1.0 or stays provisional.
 - Any real spectra. No parquet data files, no `.raw`, no `.mzML`, no `collagens/`.
 - Downloaders (`universal_ingest.py`, `download_zenodo_datasets.py`) — these are
   acquisition, not format. They stay put and simply import the ZoomzPeak writer.
+- High-resolution MS1 signal processing engines (Waters MRT lockmass calibration, MALDI-FTICR) —
+  these reside in the dedicated standalone engine repository [ZoomzMRT](https://github.com/Palaeoprot/ZoomzMRT),
+  which emits conformant `ZOOMS_SPECTRA` Parquet tables adhering to this specification.
 - Search-engine / PSM territory (pSAGEd) — downstream consumers.
 
 ---

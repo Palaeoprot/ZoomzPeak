@@ -112,7 +112,15 @@ ZOOMS_SPECTRA = pa.schema(
 #: exists and may yet be exercised.
 ZOOMS_ENUMS = {
     "source_type": {"external", "internal"},
-    "extraction_strategy": {"consolidated_csv", "txt_profile", "mzxml_profile", "mzml_profile"},
+    "extraction_strategy": {
+        "consolidated_csv",
+        "txt_profile",
+        "mzxml_profile",
+        "mzml_profile",
+        "mrt_summed_lockmass",
+        "fticr_profile",
+        "fticr_centroid",
+    },
     "instrument_status": set(InstrumentStatus.ALL),
 }
 

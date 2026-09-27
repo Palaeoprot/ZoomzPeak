@@ -158,6 +158,19 @@ def build_charge_map(
     verified, so a caller can fail loudly rather than write mis-assigned charges. An
     empty map means "unknown for every scan", which is honest; a wrong map is not.
     """
+    return build_charge_map_with_offset(raw_path, spectrum_df, probe)[0]
+
+
+def build_charge_map_with_offset(
+    raw_path,
+    spectrum_df,
+    probe: int = 200,
+) -> Tuple[Dict[int, Tuple[Optional[int], str]], Optional[int]]:
+    """As ``build_charge_map``, also returning the verified ``spec_idx`` -> scan offset.
+
+    The offset is None whenever the map is empty. Callers that write a scan number must
+    use ``spec_idx + offset``; ``spec_idx`` itself is not a Thermo scan number.
+    """
     from alpharaw.raw_access import pythermorawfilereader as ptr
 
     if "ms_level" in spectrum_df.columns:
@@ -165,7 +178,7 @@ def build_charge_map(
     else:
         ms2 = spectrum_df
     if ms2.empty:
-        return {}
+        return {}, None
 
     reader = ptr.RawFileReader(str(raw_path))
     try:
@@ -200,14 +213,14 @@ def build_charge_map(
             log.warning("%s: could not verify scan mapping (%d usable probes, need "
                         "%d -- too few scans carry a real precursor m/z); charge "
                         "left unknown", raw_path, best_checked, MIN_PROBES)
-            return {}
+            return {}, None
         if best_ratio < MIN_AGREEMENT:
             log.warning("%s: scan mapping unverified (best offset %s at %.0f%% m/z "
                         "agreement over %d probes, need %.0f%%); charge left unknown "
                         "rather than guessed",
                         raw_path, best_off, 100 * best_ratio, best_checked,
                         100 * MIN_AGREEMENT)
-            return {}
+            return {}, None
 
         log.info("%s: scan mapping offset %+d verified (%.0f%% of %d probes)",
                  raw_path, best_off, 100 * best_ratio, best_checked)
@@ -215,7 +228,7 @@ def build_charge_map(
         out: Dict[int, Tuple[Optional[int], str]] = {}
         for spec_idx in ms2["spec_idx"].astype(int):
             out[int(spec_idx)] = _charge_for_scan(reader, int(spec_idx) + best_off)
-        return out
+        return out, best_off
     finally:
         try:
             reader.Close()
