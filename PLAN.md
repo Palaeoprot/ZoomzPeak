@@ -697,7 +697,7 @@ gets no contributors:
 
 ## 8. Licensing, citation, governance
 
-- **Code:** GPL-3.0 (decided 2026-10-05; replaces the earlier Apache-2.0 plan, and `LICENSE` has carried GPL v3 since 2026-09-12).
+- **Code:** Apache-2.0 (patent grant; matches the HUPO-PSI / Apache Parquet ecosystem).
 - **Spec + `vocab/`:** CC-BY-4.0, so the bindings can be reused and cited.
 - **CITATION.cff** from day one; mint a Zenodo DOI at v0.1.
 - **Governance:** decisions in the Matrix room, recorded as ADRs in `docs/adr/`;
@@ -853,7 +853,7 @@ assert about ownership in §8.
 
 ### 10.5 Licensing — the logo is not code
 
-Add to §8: **the logo is excluded from both the GPL-3.0 and CC-BY-4.0 grants.**
+Add to §8: **the logo is excluded from both the Apache-2.0 and CC-BY-4.0 grants.**
 Marks identify a project; a CC-BY logo can be reused by anyone including on work we
 have no part in, which is precisely what a project identity must prevent. State in
 `LICENSE`/`README`: *"The ZoomzPeak name and logo are not covered by the code or

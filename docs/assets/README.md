@@ -83,7 +83,7 @@ specification they have not reviewed. Record their response here once received.
 
 ## Licence — read this before reusing
 
-The ZoomzPeak name and logo are **not** covered by the repository's GPL-3.0 or
+The ZoomzPeak name and logo are **not** covered by the repository's Apache-2.0 or
 CC-BY-4.0 licences. All rights reserved. See [`LICENSE-SPEC`](../../LICENSE-SPEC).
 
 You may use the mark to refer to this project. You may not use it as the identity

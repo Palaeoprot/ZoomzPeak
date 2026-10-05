@@ -27,14 +27,14 @@ Source code
 -----------
 
 All source code in this repository (src/, cli/, tests/) is licensed separately
-under the GNU General Public License, version 3 (GPL-3.0). See LICENSE.
+under the Apache License 2.0. See LICENSE.
 
 
 Name and logo — NOT licensed
 ----------------------------
 
 The ZoomzPeak name and the ZoomzPeak logo (including docs/assets/mark.png and any
-derived mark files) are NOT covered by either the GPL-3.0 or the CC-BY-4.0
+derived mark files) are NOT covered by either the Apache-2.0 or the CC-BY-4.0
 grant. All rights reserved.
 
 You may use the name and logo to refer to this project — for example, to state

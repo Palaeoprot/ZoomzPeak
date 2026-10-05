@@ -21,7 +21,7 @@ authors:
 
 repository-code: "https://github.com/Palaeoprot/ZoomzPeak"
 url: "https://github.com/Palaeoprot/ZoomzPeak"
-license: GPL-3.0-only
+license: Apache-2.0
 license-url: "https://github.com/Palaeoprot/ZoomzPeak/blob/main/LICENSE"
 keywords:
   - PAASTA
