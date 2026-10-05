@@ -248,8 +248,11 @@ def rows_from_txt_files(
                 header=None,
                 names=["mz", "intensity"],
                 engine="python",
-                encoding="utf-8" if not isinstance(source, bytes) else None,
-                encoding_errors="replace" if not isinstance(source, bytes) else None,
+                # Always strings: pandas >= 3 rejects encoding_errors=None. For a bytes
+                # source (BytesIO) this also decodes invalid UTF-8 with replacement
+                # instead of raising; for text handles pandas ignores both.
+                encoding="utf-8",
+                encoding_errors="replace",
                 comment="#",
             )
             if isinstance(source, (str, Path)):
