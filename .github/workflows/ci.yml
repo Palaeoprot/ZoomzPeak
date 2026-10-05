@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Rule selection lives in pyproject.toml ([tool.ruff.lint]).
+      - run: python -m pip install ruff
+      - run: ruff check .
+
+  test:
+    name: Test (${{ matrix.os }}, py${{ matrix.python }}${{ matrix.pandas && format(', pandas{0}', matrix.pandas) || '' }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # ZoomzPeak is meant to run the same on Linux, macOS and Windows. The package
+        # installs with its base dependencies only (no vendor readers, no .NET), so
+        # that is exactly what is tested here.
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.10", "3.13"]
+        include:
+          # pandas 3 changed read_csv argument handling (see the TXT reader fix); keep a
+          # pandas 2 run so neither major version regresses.
+          - os: ubuntu-latest
+            python: "3.11"
+            pandas: "<3"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install (base + dev extras only)
+        run: python -m pip install -e ".[dev]"
+      - name: Pin pandas
+        if: matrix.pandas
+        run: python -m pip install "pandas${{ matrix.pandas }}"
+      - name: Versions
+        run: python -c "import sys, pandas, pyarrow; print(sys.version); print('pandas', pandas.__version__, 'pyarrow', pyarrow.__version__)"
+      - run: python -m pytest -q

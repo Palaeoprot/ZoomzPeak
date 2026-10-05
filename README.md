@@ -4,6 +4,7 @@
 </picture>
 
 # ZoomzPeak
+**Date & Time:** 2026-09-27 10:14:00 (+02:00)
 
 **A community standard for palaeoproteomics experiment metadata — and one
 compressed data format for both halves of the experiment.**
@@ -185,9 +186,13 @@ The name is a nod to exactly that debt: ZooMS × mzPeak.
 | [`PLAN.md`](PLAN.md) | Full design and migration plan |
 | [`spec/`](spec) | The `mzPeakMS-ZooMS` specification *(not yet written)* |
 | [`vocab/`](vocab) | Controlled-vocabulary bindings *(not yet written)* |
-| `src/zoomzpeak/` | Reference builders, readers, validator *(in migration)* |
+| `src/zoomzpeak/` | Reference builders, schema definitions, validator |
 | [`tests/fixtures/`](tests/fixtures) | Synthetic example data |
 | [`docs/`](docs) | Documentation, including the [conformance audit](docs/conformance_audit_2026-09-08.md) |
+
+### High-Resolution MS1 Ingestion (Waters MRT & MALDI-FTICR)
+
+High-resolution MS1 data ingestion, lockmass calibration, and deamidation QC are handled by the dedicated standalone engine [**ZoomzMRT**](https://github.com/Palaeoprot/ZoomzMRT). ZoomzMRT ingests vendor and mzML high-resolution data and writes conformant 16-column Parquet tables according to the ZoomzPeak `ZOOMS_SPECTRA` specification.
 
 ### Conformance levels
 
