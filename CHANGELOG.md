@@ -23,6 +23,10 @@ depended on.
   -- see `docs/assets/README.md`.
 
 ### Decided
+- The **code licence is Apache-2.0** (confirmed 2026-10-05). `LICENSE` had been replaced
+  by GNU GPL v3 on 2026-09-12, which contradicted the README, NOTICE, CITATION.cff and
+  PLAN.md; the Apache-2.0 text is restored so the repository states one code licence.
+  The specification and vocabulary remain CC-BY-4.0, and the name and logo remain reserved.
 - ZoomzPeak is a **PAASTA** initiative (Palaeoproteomics And Archaeology, Society
   for Techniques and Advances). Sole-authored at present; authorship broadens as
   the community contributes.
