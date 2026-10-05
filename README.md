@@ -205,6 +205,98 @@ a single all-or-nothing check:
 | **L1 — CV-bound** | Every column resolves to a controlled-vocabulary term; instrument is a PSI-MS term, not free text |
 | **L2 — Contextualised** | Sample context resolved: taxon, material, site, period, citation — each with a provenance tag saying how it was established |
 
+## Converting Thermo `.raw` files
+
+ZoomzPeak never reads vendor formats itself. If your data is a Thermo `.raw`
+file, convert it first with an external tool, then point ZoomzPeak at the result.
+This keeps the repository OS-neutral: everything after conversion runs the same
+on Linux, macOS and Windows.
+
+### 1. Get ThermoRawFileParser
+
+Download the **self-contained** release for your operating system from the
+[ThermoRawFileParser releases](https://github.com/CompOmics/ThermoRawFileParser/releases).
+The self-contained build bundles its own runtime, so you do not need to install
+.NET. (The framework-dependent build does need the .NET 8 runtime.)
+
+ThermoRawFileParser wraps Thermo Fisher's proprietary RawFileReader library,
+which carries its own licence; ZoomzPeak does not redistribute either.
+
+On Linux/macOS, make the downloaded executable runnable:
+
+```bash
+chmod +x ThermoRawFileParser
+```
+
+### 2. Convert
+
+```bash
+./ThermoRawFileParser -i=sample.raw -o=output -f=3        # Parquet
+./ThermoRawFileParser -d=raw_data   -o=output -f=2        # a directory, indexed mzML
+```
+
+`-f` selects the format: `0` MGF, `1` mzML, `2` indexed mzML, `3` Parquet,
+`4` none. `-i` takes one file, `-d` a directory.
+
+> **Not yet verified.** ThermoRawFileParser's Parquet layout is not documented
+> and is not mzPeak, so ZoomzPeak has no ingest strategy for it yet. The mzML
+> route (`-f=1` or `-f=2`) feeds the existing `mzml_profile` strategy.
+> Whether the Parquet output can be consumed directly is an open question
+> tracked in [`PLAN.md`](PLAN.md).
+
+### Alternative: convert straight to `.mzpeak`
+
+[mzPeakConverter](https://github.com/okohlbacher/mzPeakConverter) (MIT) reads
+Thermo `.raw` and writes `.mzpeak` directly, and can embed an SDRF sample-metadata
+table (`--sdrf`). It also needs a .NET 8+ runtime for Thermo files.
+
+## Converting Bruker timsTOF data
+
+A timsTOF run is a `.d` **directory**, not a single file. It holds `analysis.tdf`
+and `analysis.tdf_bin` (or `analysis.tsf` and `analysis.tsf_bin` for line-spectrum
+MALDI/TOF acquisitions). Convert it with
+[mzPeakConverter](https://github.com/okohlbacher/mzPeakConverter), which reads TDF
+and TSF with a pure-Rust reader: no .NET and no Bruker SDK are needed, and it runs
+on Linux, macOS and Windows.
+
+### 1. Get mzPeakConverter
+
+Download the archive for your platform from the
+[releases page](https://github.com/okohlbacher/mzPeakConverter/releases) (Linux
+x86_64 and aarch64, macOS via Homebrew cask, Windows x86_64 and ARM64), or build
+from source with `cargo build --release` (Rust 1.88 or newer). Check the download
+against its `.sha256` file.
+
+```bash
+tar xzf mzpeak-convert-<version>-x86_64-unknown-linux-gnu.tar.gz
+./mzpeak-convert --version
+```
+
+### 2. Convert
+
+```bash
+./mzpeak-convert sample.d -o sample.mzpeak
+```
+
+The output is a `.mzpeak` archive (a ZIP of Parquet tables plus an index), not a
+bare `.parquet` file; the converter refuses other output extensions.
+
+By default timsTOF (TDF) data is stored as `ims-compact`: lossless integer TOF
+values plus the calibration needed to reconstruct m/z. Pass `--no-ims-compact` to
+write ordinary floating-point m/z instead.
+
+> **Metadata caveat.** `--sdrf` (embedding a sample-metadata table) is **not**
+> supported in the default `ims-compact` lane, and the converter exits with an
+> error rather than silently dropping it. Convert first, then add it to the
+> finished archive (`mzpeak-convert sample.mzpeak -o annotated.mzpeak --sdrf
+> sample.sdrf.tsv`), or convert with `--no-ims-compact`. ZoomzPeak's archaeological context
+> lives in the sidecar either way (see [`PLAN.md`](PLAN.md) §4.5).
+
+Whether ZoomzPeak can read `ims-compact` output directly has not been tested.
+
+Other vendors (Waters, Agilent, SciEX, Shimadzu) are mostly Windows-only in
+mzPeakConverter; see its platform-support table.
+
 ## Status
 
 | Piece | State |
@@ -233,10 +325,31 @@ a single all-or-nothing check:
    belong in their own repositories with their model.
 5. **The data stays where it is.** This repository never holds spectra.
 
+## Linked ontology: CODHMO
+
+ZoomzPeak records **what was measured**. What a measurement is taken to *mean* —
+which object and layer a sample came from, which species or material it might
+indicate, and which hypotheses compete — lives in a separate ontology:
+[**CODHMO**](https://github.com/Palaeoprot/CODHMO), the CODICUM Heritage Material
+Ontology. It reuses CIDOC-CRM, CRMsci, CRMinf and PROV-O and keeps every
+identification as a hypothesis, never a fact.
+
+The two are joined by reference, not by copying data:
+
+- A CODHMO observation points at a ZoomzPeak row through a `codhmo:SourceRecord`:
+  the table (`ZOOMS_SPECTRA`, `MS2_SPECTRA` or `MS1_ENVELOPE`), the row's key
+  columns, and the ZoomzPeak `schema_version` it was written against.
+- Spectra never enter the graph; the graph never enters the parquet.
+- Until ZoomzPeak ships a stable `spectrum_id`, rows are located by their natural
+  keys (`dataset_id` + `file_id` for ZooMS; `dataset_id` + `raw_filename` +
+  `scan_number` for MS2). Renaming files or re-ingesting a dataset breaks those
+  links, which is why `spectrum_id` is on the schema roadmap.
+
 ## Standards and communities we build on
 
 | | |
 |---|---|
+| [**CODHMO**](https://github.com/Palaeoprot/CODHMO) | Heritage-material ontology that interprets ZoomzPeak measurements. See [Linked ontology](#linked-ontology-codhmo). |
 | [**mzPeak**](https://www.mzpeak.org/) | HUPO-PSI's successor to mzML. `mzPeakMS-ZooMS` is a profile of it. |
 | [**PSI-MS CV**](https://www.ebi.ac.uk/ols4/ontologies/ms) | Controlled vocabulary for the measurement half. |
 | [**SDRF-Proteomics**](https://github.com/bigbio/proteomics-sample-metadata) | Sample-metadata sidecars. |
