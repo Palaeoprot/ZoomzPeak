@@ -14,8 +14,8 @@ The legacy writer then compounded that. ``universal_parquet_ingest.py:272`` read
 
 alpharaw names the column ``precursor_charge``, not ``charge``, so the membership test is
 False on every row and the ``else 1`` fires universally. Two independent faults, either
-sufficient alone, both silent. Result: 3,642 of 6,280 MS2 files in the store (58%,
-76.7M spectra) assert a charge of 1 that was never measured.
+sufficient alone, both silent. Result: every MS2 file written this way asserts a charge
+of 1 that was never measured.
 
 The same scans, read through the low-level reader:
 

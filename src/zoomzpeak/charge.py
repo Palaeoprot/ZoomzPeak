@@ -11,11 +11,10 @@ That is a coercion, not a default. It turns "the reader did not report a charge"
 the positive assertion "this precursor is singly charged", and it does so silently, with
 no column recording that a guess was made.
 
-The consequences are measurable in the current store. Sampling 60 MS1 envelope files
-(1.47M rows) on 2026-09-09: 91% of rows carry ``charge == 1`` and **56 of 60 files are
-charge 1 on every single row**. An all-singly-charged LC-MS/MS DDA run is not physically
-plausible -- tryptic peptides are predominantly 2+ and 3+. Those files did not measure
-1+; they lost the charge state and had it invented for them.
+The consequences are measurable: a file in which every precursor has ``charge == 1``
+is the signature. An all-singly-charged LC-MS/MS DDA run is not physically plausible --
+tryptic peptides are predominantly 2+ and 3+. Such a file did not measure 1+; it lost
+the charge state and had it invented for it.
 
 It is not a cosmetic label, because the envelope window depends on it::
 
