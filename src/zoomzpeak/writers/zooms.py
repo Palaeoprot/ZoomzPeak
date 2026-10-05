@@ -12,7 +12,6 @@ import io
 import json
 import re
 import sys
-import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Sequence
@@ -20,7 +19,6 @@ from typing import Any, Iterable, Iterator, Sequence
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
-from pyteomics import mzml, mzxml
 
 from zoomzpeak.schema import (
     InstrumentStatus,
@@ -182,13 +180,13 @@ def rows_from_per_sample_csv(
                     except ValueError:
                         start_line = idx + 1
 
-            valid_lines = [l for l in lines[start_line:] if l.strip() and not l.startswith("#")]
+            valid_lines = [ln for ln in lines[start_line:] if ln.strip() and not ln.startswith("#")]
             if not valid_lines:
                 continue
 
             mzs, intens = [], []
-            for l in valid_lines:
-                parts = re.split(r"[,;\s\t]+", l.strip())
+            for ln in valid_lines:
+                parts = re.split(r"[,;\s\t]+", ln.strip())
                 if len(parts) >= 2:
                     try:
                         m = float(parts[0])
@@ -295,6 +293,24 @@ def rows_from_txt_files(
             print(f"  [zoomzpeak.writers.zooms] Warning: failed to parse TXT {file_id}: {e}", file=sys.stderr)
 
 
+def _pyteomics(*names: str):
+    """Import pyteomics readers on demand.
+
+    pyteomics belongs to the optional ``raw`` extra, so importing this module must work
+    without it; only the mzML/mzXML paths need it, and they say so clearly if it is
+    missing instead of failing at import time for every user.
+    """
+    from importlib import import_module
+
+    try:
+        mods = [import_module(f"pyteomics.{n}") for n in names]
+    except ImportError as e:
+        raise ImportError(
+            "Reading mzML/mzXML needs pyteomics: pip install 'zoomzpeak[raw]'"
+        ) from e
+    return mods[0] if len(mods) == 1 else mods
+
+
 def rows_from_mzxml(
     mzxml_items: Sequence[tuple[str, Any]],
     dataset_id: str,
@@ -304,6 +320,7 @@ def rows_from_mzxml(
     instrument_serial: str | None = None,
 ) -> Iterator[dict[str, Any]]:
     """Yield MS1 scan records from mzXML files or streams."""
+    mzxml = _pyteomics("mzxml")
     for file_id, source in mzxml_items:
         try:
             src = str(source) if isinstance(source, Path) else source
@@ -347,6 +364,7 @@ def rows_from_mzml(
     instrument_serial: str | None = None,
 ) -> Iterator[dict[str, Any]]:
     """Yield MS1 scan records from mzML files or streams."""
+    mzml = _pyteomics("mzml")
     for file_id, source in mzml_items:
         try:
             src = str(source) if isinstance(source, Path) else source

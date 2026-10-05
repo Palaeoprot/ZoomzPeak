@@ -5,7 +5,6 @@ Tests for ZoomzPeak Writers and Ingestion Utilities.
 import io
 from pathlib import Path
 import pyarrow.parquet as pq
-import pytest
 
 from zoomzpeak.schema import conforms
 from zoomzpeak.writers.zooms import (
