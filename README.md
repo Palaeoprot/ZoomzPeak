@@ -386,7 +386,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) and
 
 ## Licence
 
-- **Code** — [Apache-2.0](LICENSE)
+- **Code** — [GPL-3.0](LICENSE)
 - **Specification and `vocab/`** — [CC-BY-4.0](LICENSE-SPEC)
 - **The ZoomzPeak name and logo** are not covered by either licence. All rights
   reserved. See [`LICENSE-SPEC`](LICENSE-SPEC) for what that does and does not
