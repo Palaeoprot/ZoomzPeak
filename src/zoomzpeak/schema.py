@@ -148,7 +148,6 @@ MS1_ENVELOPE = pa.schema(
     [
         ("file_id", pa.string()),
         ("pxd_accession", pa.string()),
-        ("raw_path", pa.string()),
         ("ms2_title", pa.string()),
         ("ms2_rt", pa.float32()),
         ("precursor_mz", pa.float32()),
